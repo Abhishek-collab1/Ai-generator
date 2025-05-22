@@ -1,17 +1,15 @@
-
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Toaster } from '@/components/ui/toaster';
-/* Removed: import { useToast } from '@/components/ui/use-toast'; // Not used directly in App.jsx */
 import { motion } from 'framer-motion';
 import { ImageDetector } from '@/components/ImageDetector';
 import { TextDetector } from '@/components/TextDetector';
+import { VideoDetector } from '@/components/VideoDetector';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
-import { BrainCircuit, FileText as FileTextIcon, FileImage as ImageIcon } from 'lucide-react';
+import { BrainCircuit, FileText as FileTextIcon, FileImage as ImageIcon, Video as VideoIcon } from 'lucide-react';
 
 function App() {
-  /* Removed: const { toast } = useToast(); // This was not used within the App component directly */
   const [activeTab, setActiveTab] = useState("image");
 
   const handleTabChange = (value) => {
@@ -66,7 +64,7 @@ function App() {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.4, duration: 0.7, ease: "easeOut" }}
             >
-              Uncover the origin of digital content. Our sophisticated tools analyze images and text, distinguishing between human creativity and AI generation.
+              Uncover the origin of digital content. Our sophisticated tools analyze images, text, and videos, distinguishing between human creativity and AI generation.
             </motion.p>
           </div>
 
@@ -77,12 +75,15 @@ function App() {
             transition={{ delay: 0.6, duration: 0.6, ease: "easeOut" }}
           >
             <Tabs defaultValue="image" value={activeTab} onValueChange={handleTabChange} className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-8 bg-secondary/50 p-1.5 rounded-lg">
-                <TabsTrigger value="image" className="text-md md:text-lg py-3 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg rounded-md transition-all duration-300 ease-in-out">
-                  <ImageIcon className="w-5 h-5 mr-2 hidden sm:inline-block" /> Image Detection
+              <TabsList className="grid w-full grid-cols-3 mb-8 bg-secondary/50 p-1.5 rounded-lg">
+                <TabsTrigger value="image" className="text-sm sm:text-base md:text-lg py-3 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg rounded-md transition-all duration-300 ease-in-out flex items-center justify-center">
+                  <ImageIcon className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" /> Image
                 </TabsTrigger>
-                <TabsTrigger value="text" className="text-md md:text-lg py-3 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg rounded-md transition-all duration-300 ease-in-out">
-                  <FileTextIcon className="w-5 h-5 mr-2 hidden sm:inline-block" /> Text Detection
+                <TabsTrigger value="text" className="text-sm sm:text-base md:text-lg py-3 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg rounded-md transition-all duration-300 ease-in-out flex items-center justify-center">
+                  <FileTextIcon className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" /> Text
+                </TabsTrigger>
+                <TabsTrigger value="video" className="text-sm sm:text-base md:text-lg py-3 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg rounded-md transition-all duration-300 ease-in-out flex items-center justify-center">
+                  <VideoIcon className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" /> Video
                 </TabsTrigger>
               </TabsList>
               
@@ -92,6 +93,10 @@ function App() {
               
               <TabsContent value="text" className="mt-0">
                 <TextDetector />
+              </TabsContent>
+
+              <TabsContent value="video" className="mt-0">
+                <VideoDetector />
               </TabsContent>
             </Tabs>
           </motion.div>
@@ -105,8 +110,8 @@ function App() {
             <h2 className="text-3xl font-semibold mb-6 text-center text-gradient">How It Works</h2>
             <div className="grid md:grid-cols-3 gap-6 text-center">
               {[
-                { title: "Upload or Input", description: "Simply provide an image or paste text into the designated area.", icon: <UploadIcon className="w-8 h-8 mx-auto mb-3 text-primary floating-icon" /> },
-                { title: "Advanced Analysis", description: "Our AI algorithms meticulously examine the content for tell-tale signs of generation.", icon: <CpuIcon className="w-8 h-8 mx-auto mb-3 text-primary floating-icon" style={{animationDelay: '0.2s'}}/> },
+                { title: "Upload or Input", description: "Provide an image, text, or video file for analysis.", icon: <UploadIcon className="w-8 h-8 mx-auto mb-3 text-primary floating-icon" /> },
+                { title: "Advanced Analysis", description: "Our AI algorithms meticulously examine the content for signs of AI generation.", icon: <CpuIcon className="w-8 h-8 mx-auto mb-3 text-primary floating-icon" style={{animationDelay: '0.2s'}}/> },
                 { title: "Clear Results", description: "Receive a straightforward verdict with a confidence score and detailed insights.", icon: <BarChartIcon className="w-8 h-8 mx-auto mb-3 text-primary floating-icon" style={{animationDelay: '0.4s'}}/> }
               ].map((step, index) => (
                 <motion.div 
@@ -125,7 +130,7 @@ function App() {
           </motion.div>
         </div>
       </motion.main>
-      
+
       <Footer />
       <Toaster />
     </div>

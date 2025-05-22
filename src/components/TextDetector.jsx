@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertCircle, FileText } from 'lucide-react';
+import { AlertCircle, FileText as FileTextIconLucide, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/components/ui/use-toast';
@@ -11,12 +10,16 @@ import { detectAIText } from '@/lib/ai-detection';
 export function TextDetector() {
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(false);
+  const [progressValue, setProgressValue] = useState(0);
   const [result, setResult] = useState(null);
   const { toast } = useToast();
 
   const handleTextChange = (e) => {
     setText(e.target.value);
-    if (result) setResult(null);
+    if (result) {
+        setResult(null);
+        setProgressValue(0);
+    }
   };
 
   const analyzeText = async () => {
@@ -30,19 +33,34 @@ export function TextDetector() {
     }
     
     setLoading(true);
+    setResult(null);
+    setProgressValue(0);
+
+    const interval = setInterval(() => {
+      setProgressValue(prev => {
+        if (prev >= 90) {
+          return prev;
+        }
+        return prev + 20; 
+      });
+    }, 100);
+
     try {
-      // In a real app, this would call an actual AI detection model
       const detectionResult = await detectAIText(text);
+      clearInterval(interval);
+      setProgressValue(100);
       setResult(detectionResult);
       
       toast({
-        title: "Analysis Complete",
+        title: "Text Analysis Complete",
         description: "Your text has been successfully analyzed.",
       });
     } catch (error) {
+      clearInterval(interval);
+      setProgressValue(0);
       console.error("Error analyzing text:", error);
       toast({
-        title: "Analysis Failed",
+        title: "Text Analysis Failed",
         description: "There was an error analyzing your text. Please try again.",
         variant: "destructive",
       });
@@ -54,6 +72,7 @@ export function TextDetector() {
   const resetText = () => {
     setText('');
     setResult(null);
+    setProgressValue(0);
   };
 
   return (
@@ -66,13 +85,13 @@ export function TextDetector() {
           className="w-full h-48 p-4 rounded-lg bg-background/50 border border-gray-700 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all resize-none"
         />
         
-        <div className="flex justify-between">
+        <div className="flex justify-between items-center">
           <div className="text-sm text-gray-400">
-            {text.length} characters {text.length < 50 && text.length > 0 && "(minimum 50)"}
+            {text.length} characters {text.length > 0 && text.length < 50 && <span className="text-yellow-500">(minimum 50)</span>}
           </div>
           {text && (
-            <Button variant="ghost" size="sm" onClick={resetText}>
-              Clear
+            <Button variant="ghost" size="sm" onClick={resetText} className="text-primary hover:text-primary/80">
+              Clear Text
             </Button>
           )}
         </div>
@@ -81,7 +100,7 @@ export function TextDetector() {
       {loading ? (
         <div className="space-y-4">
           <p className="text-center text-sm text-gray-400">Analyzing text...</p>
-          <Progress value={65} className="h-2" />
+          <Progress value={progressValue} className="h-2 transition-all duration-300" />
         </div>
       ) : result ? (
         <AnimatePresence>
@@ -96,40 +115,40 @@ export function TextDetector() {
           >
             <div className="flex items-start gap-4">
               <div className={cn(
-                "w-12 h-12 rounded-full flex items-center justify-center",
+                "w-12 h-12 rounded-full flex items-center justify-center shrink-0",
                 result.isAI ? "bg-red-500/20" : "bg-green-500/20"
               )}>
                 {result.isAI ? (
                   <AlertCircle className="h-6 w-6 text-red-500" />
                 ) : (
-                  <FileText className="h-6 w-6 text-green-500" />
+                  <CheckCircle2 className="h-6 w-6 text-green-500" />
                 )}
               </div>
-              <div className="flex-1">
+              <div className="flex-grow">
                 <h3 className="text-xl font-semibold mb-1">
-                  {result.isAI ? "AI-Generated Content Detected" : "Likely Human-Created Content"}
+                  {result.isAI ? "AI-Generated Text Detected" : "Likely Human-Written Text"}
                 </h3>
-                <p className="text-gray-400 mb-3">{result.description}</p>
+                <p className="text-gray-400 mb-3 text-sm">{result.description}</p>
                 
-                <div className="grid grid-cols-2 gap-4 mt-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 text-sm">
                   <div className="bg-background/50 p-3 rounded-lg">
-                    <div className="text-sm text-gray-400">Confidence</div>
+                    <div className="text-gray-400">Confidence</div>
                     <div className="text-lg font-medium">{result.confidence}%</div>
                   </div>
                   <div className="bg-background/50 p-3 rounded-lg">
-                    <div className="text-sm text-gray-400">Analysis Time</div>
+                    <div className="text-gray-400">Analysis Time</div>
                     <div className="text-lg font-medium">{result.analysisTime}s</div>
                   </div>
                 </div>
 
-                {result.details && (
+                {result.details && result.details.length > 0 && (
                   <div className="mt-4 bg-background/50 p-4 rounded-lg">
-                    <h4 className="font-medium mb-2">Analysis Details</h4>
-                    <ul className="space-y-2">
+                    <h4 className="font-medium mb-2">Analysis Details:</h4>
+                    <ul className="space-y-1.5 text-sm">
                       {result.details.map((detail, index) => (
                         <li key={index} className="flex items-start gap-2">
                           <span className="text-primary">•</span>
-                          <span className="text-sm text-gray-300">{detail}</span>
+                          <span className="text-gray-300">{detail}</span>
                         </li>
                       ))}
                     </ul>
@@ -141,28 +160,28 @@ export function TextDetector() {
         </AnimatePresence>
       ) : (
         <Button 
-          className="w-full py-6 text-lg"
+          className="w-full py-6 text-lg animated-gradient-button"
           onClick={analyzeText}
-          disabled={!text.trim() || text.length < 50}
+          disabled={!text.trim() || text.length < 50 || loading}
         >
           Analyze Text
         </Button>
       )}
 
       <div className="mt-8 p-4 rounded-lg bg-secondary/30">
-        <h3 className="font-medium mb-2">Tips for accurate detection</h3>
+        <h3 className="font-medium mb-2 text-gray-100">Tips for accurate text detection:</h3>
         <ul className="space-y-2 text-sm text-gray-400">
           <li className="flex items-start gap-2">
             <span className="text-primary">•</span>
-            <span>Provide at least 100-200 words for more accurate results</span>
+            <span>Provide at least 100-200 words for more robust results.</span>
           </li>
           <li className="flex items-start gap-2">
             <span className="text-primary">•</span>
-            <span>Include complete sentences and paragraphs rather than fragments</span>
+            <span>Ensure text includes complete sentences and paragraphs.</span>
           </li>
           <li className="flex items-start gap-2">
             <span className="text-primary">•</span>
-            <span>For best results, analyze unedited text directly from the source</span>
+            <span>For best results, analyze unedited text directly from its source.</span>
           </li>
         </ul>
       </div>
